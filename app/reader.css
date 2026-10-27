@@ -1,0 +1,138 @@
+.reader-page-view {
+	width: min(980px, calc(100% - 32px));
+	margin-inline: auto;
+}
+
+.reader-page-current {
+	margin: 0;
+}
+
+.reader-image-frame {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 100%;
+	height: min(78vh, 1000px);
+	min-height: 280px;
+	overflow: hidden;
+	background: var(--panel);
+}
+
+.reader-image-frame img {
+	max-width: 100%;
+	object-fit: contain;
+}
+
+.reader-page-current figcaption {
+	padding: 8px;
+	color: #777;
+	font-size: 9px;
+	letter-spacing: .16em;
+	text-align: center;
+}
+
+.reader-image-error {
+	position: absolute;
+	inset: 16px;
+	display: grid;
+	align-content: center;
+	justify-items: center;
+	gap: 10px;
+	padding: 24px;
+	border: 1px solid var(--line);
+	background: #121216;
+	color: var(--text);
+	text-align: center;
+}
+
+.reader-image-error span {
+	max-width: 560px;
+	color: var(--muted);
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.reader-page-controls {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	padding: 14px 0 24px;
+}
+
+.reader-page-count {
+	min-width: 100px;
+	color: var(--muted);
+	font-size: 12px;
+	text-align: center;
+}
+
+.reader-page-select {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--muted);
+	font-size: 11px;
+}
+
+.reader-page-select select {
+	min-height: 40px;
+	padding: 8px 30px 8px 10px;
+	border: 1px solid var(--line);
+	border-radius: 2px;
+	background: var(--panel-2);
+	color: var(--text);
+}
+
+@media (max-width: 680px) {
+	.reader-page-view {
+		width: calc(100% - 24px);
+	}
+
+	.reader-image-frame {
+		height: min(68svh, 760px);
+		min-height: 220px;
+	}
+
+	.reader-page-controls {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+
+	.reader-page-controls button {
+		min-height: 44px;
+		width: 100%;
+	}
+
+	.reader-page-count,
+	.reader-page-select {
+		grid-column: 1 / -1;
+		justify-self: center;
+	}
+
+	.reader-page-count {
+		grid-row: 1;
+	}
+}
+
+.cover-loading {
+	position: absolute;
+	z-index: 2;
+	inset: auto 10px 10px;
+	color: #ddd;
+	font-size: 10px;
+	text-align: center;
+	text-shadow: 0 1px 5px #000;
+}
+
+.cover-error-message {
+	z-index: 1;
+	max-width: 100%;
+	margin-top: 8px;
+	color: #d4cbca !important;
+	font-size: 9px !important;
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+}

@@ -1,0 +1,7 @@
+admin-portal/
+node_modules/
+.next/
+.vercel/
+out/
+coverage/
+.env*
