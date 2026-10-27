@@ -1,1 +1,0 @@
-# dr-content-creator-manga
