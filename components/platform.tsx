@@ -2,11 +2,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { Chapter, Manga } from '@/lib/catalog';
 
-export function Header() {
-  return <header className="site-header"><div className="shell nav"><Link className="brand" href="/" aria-label="Dr Content Creator Manga home"><span className="brand-mark">D</span><span>DR CONTENT <b>CREATOR</b><small>MANGA LIBRARY</small></span></Link><nav className="navlinks" aria-label="Main navigation"><Link href="/">Home</Link><Link href="/manga">Explore Manga</Link><Link href="/#latest">Latest Chapters</Link><Link href="/manga#genres">Genres</Link><Link href="/search">Search</Link></nav></div></header>;
+export function Header({ readerMode = false }: { readerMode?: boolean }) {
+  return <header className={`site-header${readerMode ? ' reader-header' : ''}`}><div className="shell nav"><Link className="brand" href="/" aria-label="Dr Content Creator Manga home"><span className="brand-mark">D</span><span>DR CONTENT <b>CREATOR</b><small>MANGA LIBRARY</small></span></Link><nav className="navlinks" aria-label="Main navigation"><Link href="/">Home</Link><Link href="/manga">Explore Manga</Link><Link href="/#latest">Latest Chapters</Link><Link href="/manga#genres">Genres</Link><Link href="/search">Search</Link></nav></div></header>;
 }
 
 export function Footer() {
@@ -69,10 +69,60 @@ export function ChapterRows({ manga, chapters }: { manga: Manga; chapters: Chapt
 export function ReaderPages({ chapterId, mangaTitle, chapterNumber, pages, error }: { chapterId: string; mangaTitle: string; chapterNumber: number; pages: { id: string; page_number: number; image_url: string; image_error?: string }[]; error: string | null }) {
   const [pageIndex, setPageIndex] = useState(0);
   const [imageStates, setImageStates] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({});
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState('');
+  const readerRef = useRef<HTMLElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ pointerId: number; startX: number; startY: number; panX: number; panY: number } | null>(null);
+
+  function changePage(nextIndex: number) {
+    setPageIndex(nextIndex);
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }
+
+  function toggleZoom() {
+    setZoom((current) => current === 1 ? 2.5 : 1);
+    setPan({ x: 0, y: 0 });
+  }
+
+  function clampPan(x: number, y: number) {
+    const frame = frameRef.current;
+    const image = frame?.querySelector('img');
+    if (!frame || !image) return { x, y };
+    const maxX = Math.max(0, image.clientWidth * (zoom - 1) / 2);
+    const maxY = Math.max(0, image.clientHeight * (zoom - 1) / 2);
+    return { x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) };
+  }
+
+  async function toggleFullscreen() {
+    setFullscreenError('');
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await readerRef.current?.requestFullscreen();
+      }
+    } catch (fullscreenFailure) {
+      setFullscreenError(fullscreenFailure instanceof Error ? fullscreenFailure.message : 'Fullscreen is unavailable in this browser.');
+    }
+  }
+
+  useEffect(() => {
+    function updateFullscreenState() {
+      setIsFullscreen(document.fullscreenElement === readerRef.current);
+    }
+    document.addEventListener('fullscreenchange', updateFullscreenState);
+    return () => document.removeEventListener('fullscreenchange', updateFullscreenState);
+  }, []);
 
   useEffect(() => {
     setPageIndex(0);
     setImageStates({});
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
   }, [chapterId]);
 
   useEffect(() => {
@@ -81,16 +131,16 @@ export function ReaderPages({ chapterId, mangaTitle, chapterNumber, pages, error
       if (target instanceof HTMLElement && (target.isContentEditable || target.closest('input, textarea, select'))) return;
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        setPageIndex((current) => Math.max(0, current - 1));
+        changePage(Math.max(0, pageIndex - 1));
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        setPageIndex((current) => Math.min(pages.length - 1, current + 1));
+        changePage(Math.min(pages.length - 1, pageIndex + 1));
       }
     }
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [pages.length]);
+  }, [pages.length, pageIndex]);
 
   if (error) return <div className="empty-state reader-empty" role="alert"><h2>Could not load chapter pages</h2><p>{error}</p></div>;
   if (!pages.length) return <div className="empty-state reader-empty"><span>◫</span><h2>No pages in this chapter yet</h2><p>Page artwork has not been uploaded for Chapter {chapterNumber}.</p></div>;
@@ -100,21 +150,36 @@ export function ReaderPages({ chapterId, mangaTitle, chapterNumber, pages, error
   const imageState = imageStates[page.id] ?? 'loading';
   const imageError = page.image_error || (imageState === 'error' ? 'The image URL could not be loaded. Check the Storage object and its published-page read policy.' : '');
 
-  return <section className="reader-page-view" aria-label={`${mangaTitle}, Chapter ${chapterNumber} pages`}>
+  return <section ref={readerRef} className={`reader-page-view${isFullscreen ? ' reader-fullscreen' : ''}`} aria-label={`${mangaTitle}, Chapter ${chapterNumber} pages`}>
+    <div className="reader-tools" aria-label="Reading controls">
+      <button className="reader-tool-button" type="button" onClick={toggleZoom} aria-pressed={zoom > 1}>{zoom > 1 ? 'Reset zoom' : 'Zoom in'}</button>
+      <button className="reader-tool-button" type="button" onClick={toggleFullscreen}>{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</button>
+    </div>
     <figure className="reader-page-current">
-      <div className="reader-image-frame">
-        {page.image_url && !page.image_error && imageState !== 'error' && <Image src={page.image_url} alt={`${mangaTitle}, Chapter ${chapterNumber}, page ${page.page_number}`} fill sizes="(max-width: 760px) 100vw, 850px" unoptimized onLoad={() => setImageStates((current) => ({ ...current, [page.id]: 'loaded' }))} onError={() => setImageStates((current) => ({ ...current, [page.id]: 'error' }))} style={{ objectFit: 'contain' }} />}
+      <div ref={frameRef} className={`reader-image-frame${zoom > 1 ? ' is-zoomed' : ''}`} onDoubleClick={toggleZoom} onPointerDown={(event) => {
+        if (zoom === 1) return;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, panX: pan.x, panY: pan.y };
+      }} onPointerMove={(event) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        setPan(clampPan(drag.panX + event.clientX - drag.startX, drag.panY + event.clientY - drag.startY));
+      }} onPointerUp={() => { dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }}>
+        {page.image_url && !page.image_error && imageState !== 'error' && <Image className="reader-artwork" src={page.image_url} alt={`${mangaTitle}, Chapter ${chapterNumber}, page ${page.page_number}`} width={1000} height={1400} sizes="(max-width: 1040px) 100vw, 1040px" unoptimized onLoad={() => setImageStates((current) => ({ ...current, [page.id]: 'loaded' }))} onError={() => setImageStates((current) => ({ ...current, [page.id]: 'error' }))} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }} />}
         {!imageError && imageState !== 'loaded' && <span className="image-loading">Loading page {page.page_number}…</span>}
         {imageError && <div className="reader-image-error" role="alert"><strong>Page {page.page_number} image unavailable</strong><span>{imageError}</span></div>}
       </div>
       <figcaption>PAGE {String(page.page_number).padStart(2, '0')}</figcaption>
     </figure>
     <nav className="reader-page-controls" aria-label="Page navigation">
-      <button className="button button-outline" type="button" disabled={currentIndex === 0} onClick={() => setPageIndex((current) => Math.max(0, current - 1))}>← Previous Page</button>
       <span className="reader-page-count" aria-live="polite">Page {page.page_number} of {pages.length}</span>
-      <label className="reader-page-select"><span>Go to page</span><select aria-label="Go to page" value={currentIndex} onChange={(event) => setPageIndex(Number(event.target.value))}>{pages.map((item, index) => <option key={item.id} value={index}>Page {item.page_number}</option>)}</select></label>
-      <button className="button button-red" type="button" disabled={currentIndex === pages.length - 1} onClick={() => setPageIndex((current) => Math.min(pages.length - 1, current + 1))}>Next Page →</button>
+      <label className="reader-page-select"><span>Go to page</span><select aria-label="Go to page" value={currentIndex} onChange={(event) => changePage(Number(event.target.value))}>{pages.map((item, index) => <option key={item.id} value={index}>Page {item.page_number}</option>)}</select></label>
+      <div className="reader-page-buttons">
+        <button className="button button-outline" type="button" disabled={currentIndex === 0} onClick={() => changePage(Math.max(0, currentIndex - 1))}>← Previous Page</button>
+        <button className="button button-red" type="button" disabled={currentIndex === pages.length - 1} onClick={() => changePage(Math.min(pages.length - 1, currentIndex + 1))}>Next Page →</button>
+      </div>
     </nav>
+    {fullscreenError && <p className="reader-fullscreen-error" role="alert">{fullscreenError}</p>}
   </section>;
 }
 

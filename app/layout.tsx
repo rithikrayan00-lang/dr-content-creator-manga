@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './reader.css';
+import './home.css';
 
 export const metadata: Metadata = {
   title: 'Dr Content Creator Manga | Discover Your Next Story',

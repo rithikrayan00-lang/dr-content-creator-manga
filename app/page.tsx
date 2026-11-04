@@ -13,7 +13,7 @@ export default async function Home() {
     return series ? chapters.slice(0, 2).map((chapter) => ({ series, chapter })) : [];
   }).sort((a, b) => (b.chapter.published_at ?? b.chapter.created_at).localeCompare(a.chapter.published_at ?? a.chapter.created_at)).slice(0, 4);
 
-  return <><Header /><main>
+  return <><Header /><main className="home-template">
     <section className="hero-section shell"><div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> THE HOME OF ORIGINAL MANGA</div><h1>Stories that<br />stay with <em>you.</em></h1><p className="hero-description">Step into unforgettable worlds, meet the characters who define them, and read every chapter in one place.</p><div className="hero-actions"><Link className="button button-red" href={featuredChapter && featured ? `/manga/${featured.slug}/chapter/${featuredChapter.slug}` : featured ? `/manga/${featured.slug}` : '/manga'}>Read Now <span>↗</span></Link>{featured && <Link className="button button-outline" href={`/manga/${featured.slug}`}>View Details</Link>}</div><SearchForm /></div>
       {featured && <Link href={`/manga/${featured.slug}`} className="featured-art"><CoverArt manga={featured} large /><div className="featured-caption"><span>FEATURED SERIES</span><strong>{featured.title}</strong><small>{featured.genres.join(' · ') || 'Original manga'}</small></div><span className="featured-index">01</span></Link>}
     </section>
