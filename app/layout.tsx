@@ -4,6 +4,7 @@ import './globals.css';
 import './theme.css';
 import './reader.css';
 import './home.css';
+import './universe.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteOrigin()),

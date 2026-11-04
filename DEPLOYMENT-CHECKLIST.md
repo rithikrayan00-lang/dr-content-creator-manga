@@ -4,6 +4,7 @@
 - [ ] `npm install`
 - [ ] Copy `.env.example` to `.env.local` and configure Supabase
 - [ ] Run `supabase/schema.sql`
+- [ ] Run `supabase/advanced-universe.sql` after the base schema and storage policies to enable character and world-guide archives
 - [ ] Create one administrator user and add its UUID to `admin_users`
 - [ ] Configure `manga-pages` storage upload policies
 - [ ] Replace development samples with authorized series, synopsis, and artwork
@@ -17,5 +18,6 @@
 - [ ] Deploy the public website through Vercel
 - [ ] Register domain and configure the DNS records Vercel specifies
 - [ ] Test public access, mobile reader, and image/page loading
+- [ ] Verify unpublished character and world entries are private and published media remains in the private storage bucket
 - [ ] Verify `robots.txt`, `sitemap.xml`, and canonical manga/chapter URLs use the production domain
 - [ ] Add privacy, terms, and copyright contact pages

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getMangaList, getPublishedChapters } from '@/lib/catalog';
+import { getCharacters, getMangaList, getPublishedChapters, getWorldEntries } from '@/lib/catalog';
 import { getSiteOrigin } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
@@ -17,8 +17,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/manga`, changeFrequency: 'daily', priority: 0.9 },
   ];
 
-  const chapterEntries = await Promise.all(manga.map(async (series) => {
-    const chapters = await getPublishedChapters(series.id);
+  const seriesEntries = await Promise.all(manga.map(async (series) => {
+    const [chapters, characters, worldEntries] = await Promise.all([
+      getPublishedChapters(series.id),
+      getCharacters(series.id),
+      getWorldEntries(series.id),
+    ]);
     return [
       {
         url: `${origin}/manga/${encodeURIComponent(series.slug)}`,
@@ -26,6 +30,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly' as const,
         priority: 0.8,
       },
+      ...(characters.items.length > 0 ? [{
+        url: `${origin}/manga/${encodeURIComponent(series.slug)}/characters`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.5,
+      }] : []),
+      ...characters.items.map((character) => ({
+        url: `${origin}/manga/${encodeURIComponent(series.slug)}/characters/${encodeURIComponent(character.slug)}`,
+        lastModified: lastModified(series.created_at),
+        changeFrequency: 'monthly' as const,
+        priority: 0.4,
+      })),
+      ...(worldEntries.items.length > 0 ? [{
+        url: `${origin}/manga/${encodeURIComponent(series.slug)}/world`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.5,
+      }] : []),
+      ...worldEntries.items.map((entry) => ({
+        url: `${origin}/manga/${encodeURIComponent(series.slug)}/world/${encodeURIComponent(entry.slug)}`,
+        changeFrequency: 'monthly' as const,
+        priority: 0.4,
+      })),
       ...chapters.map((chapter) => ({
         url: `${origin}/manga/${encodeURIComponent(series.slug)}/chapter/${encodeURIComponent(chapter.slug)}`,
         lastModified: lastModified(chapter.published_at ?? chapter.created_at),
@@ -34,6 +59,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ];
   }));
-  entries.push(...chapterEntries.flat());
+  entries.push(...seriesEntries.flat());
   return entries;
 }

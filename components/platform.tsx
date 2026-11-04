@@ -96,6 +96,7 @@ export function ReaderPages({ chapterId, mangaTitle, chapterNumber, pages, error
   const [background, setBackground] = useState<ReaderBackground>('black');
   const [fit, setFit] = useState<ReaderFit>('width');
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsReady, setSettingsReady] = useState(false);
   const [progressReady, setProgressReady] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -311,13 +312,17 @@ export function ReaderPages({ chapterId, mangaTitle, chapterNumber, pages, error
 
   return <section ref={readerRef} className={readerClassName} aria-label={`${mangaTitle}, Chapter ${chapterNumber} pages`}>
     {controlsVisible && <div className="reader-tools" aria-label="Reading controls">
-      <label className="reader-setting">Mode<select aria-label="Reading mode" value={mode} onChange={(event) => { setMode(event.target.value as ReaderMode); setPageIndex((index) => index > 0 && event.target.value === 'double' ? 1 + Math.floor((index - 1) / 2) * 2 : index); }}><option value="single">Single page</option><option value="double">Double page</option><option value="vertical">Long strip</option></select></label>
-      <label className="reader-setting">Direction<select aria-label="Reading direction" value={direction} onChange={(event) => setDirection(event.target.value as ReadingDirection)}><option value="rtl">Right to left</option><option value="ltr">Left to right</option></select></label>
-      <label className="reader-setting">Fit<select aria-label="Image fit" value={fit} onChange={(event) => setFit(event.target.value as ReaderFit)}><option value="width">Fit width</option><option value="height">Fit height</option><option value="original">Original size</option></select></label>
-      <label className="reader-setting">Background<select aria-label="Reader background" value={background} onChange={(event) => setBackground(event.target.value as ReaderBackground)}><option value="black">Black</option><option value="grey">Dark grey</option><option value="white">White</option></select></label>
-      <div className="reader-zoom-tools" aria-label="Zoom controls"><button className="reader-tool-button" type="button" aria-label="Zoom out" onClick={() => setZoom((value) => Math.max(1, value - .25))}>−</button><button className="reader-tool-button" type="button" aria-label="Zoom in" onClick={() => setZoom((value) => Math.min(3, value + .25))}>+</button><button className="reader-tool-button" type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>Reset zoom</button></div>
+      <button className="reader-tool-button" type="button" aria-expanded={settingsOpen} aria-controls="reader-settings" onClick={() => setSettingsOpen((open) => !open)}>Settings</button>
       <button className="reader-tool-button" type="button" onClick={toggleFullscreen}>{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</button>
       <button className="reader-tool-button" type="button" onClick={() => setControlsVisible(false)}>Hide controls</button>
+    </div>}
+    {controlsVisible && settingsOpen && <div id="reader-settings" className="reader-settings-panel" aria-label="Reader settings">
+      <label className="reader-setting">Reading mode<select aria-label="Reading mode" value={mode} onChange={(event) => { setMode(event.target.value as ReaderMode); setPageIndex((index) => index > 0 && event.target.value === 'double' ? 1 + Math.floor((index - 1) / 2) * 2 : index); }}><option value="single">Single page</option><option value="double">Double page</option><option value="vertical">Long strip</option></select></label>
+      <label className="reader-setting">Direction<select aria-label="Reading direction" value={direction} onChange={(event) => setDirection(event.target.value as ReadingDirection)}><option value="rtl">Right to left</option><option value="ltr">Left to right</option></select></label>
+      <label className="reader-setting">Image fit<select aria-label="Image fit" value={fit} onChange={(event) => setFit(event.target.value as ReaderFit)}><option value="width">Fit width</option><option value="height">Fit height</option><option value="original">Original size</option></select></label>
+      <label className="reader-setting">Background<select aria-label="Reader background" value={background} onChange={(event) => setBackground(event.target.value as ReaderBackground)}><option value="black">Black</option><option value="grey">Dark grey</option><option value="white">White</option></select></label>
+      <div className="reader-setting"><span>Zoom</span><div className="reader-zoom-tools" aria-label="Zoom controls"><button className="reader-tool-button" type="button" aria-label="Zoom out" onClick={() => setZoom((value) => Math.max(1, value - .25))}>−</button><button className="reader-tool-button" type="button" aria-label="Zoom in" onClick={() => setZoom((value) => Math.min(3, value + .25))}>+</button><button className="reader-tool-button" type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>Reset</button></div></div>
+      <label className="reader-setting">Go to page<select aria-label="Go to page" value={currentIndex} onChange={(event) => setSelectedPage(Number(event.target.value))}>{pages.map((item, index) => <option key={item.id} value={index}>Page {item.page_number}</option>)}</select></label>
     </div>}
     {!controlsVisible && <button className="reader-tool-button reader-show-controls" type="button" onClick={() => setControlsVisible(true)}>Show reader controls</button>}
     {mode === 'vertical' ? <div className="reader-vertical-pages">{pages.map((item, index) => {
@@ -351,10 +356,9 @@ export function ReaderPages({ chapterId, mangaTitle, chapterNumber, pages, error
       })}
     </div>}
     {controlsVisible && <nav className="reader-page-controls" aria-label="Page navigation">
-      <span className="reader-page-count" aria-live="polite">{firstVisiblePage === lastVisiblePage ? `Page ${firstVisiblePage}` : `Pages ${firstVisiblePage}–${lastVisiblePage}`} of {pages.length}</span>
-      <label className="reader-page-select"><span>Go to page</span><select aria-label="Go to page" value={currentIndex} onChange={(event) => setSelectedPage(Number(event.target.value))}>{pages.map((item, index) => <option key={item.id} value={index}>Page {item.page_number}</option>)}</select></label>
       <div className="reader-page-buttons">
         <button className="button button-outline" type="button" disabled={currentIndex === 0} onClick={() => movePage(-1)}>← Previous Page</button>
+        <span className="reader-page-count" aria-live="polite">{firstVisiblePage === lastVisiblePage ? `Page ${firstVisiblePage}` : `Pages ${firstVisiblePage}–${lastVisiblePage}`} of {pages.length}</span>
         <button className="button button-red" type="button" disabled={currentIndex >= pages.length - 1 || (mode === 'double' && (spreadStart === 0 ? 1 : spreadStart + 2) >= pages.length)} onClick={() => movePage(1)}>Next Page →</button>
       </div>
     </nav>}
