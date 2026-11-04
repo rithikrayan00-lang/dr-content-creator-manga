@@ -40,6 +40,7 @@ Open http://localhost:3001. Configure that app's `.env.local` as described in [a
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 4. In Supabase SQL Editor, run `supabase/schema.sql`, then run `supabase/storage-policies.sql` to set up the private manga-pages bucket and admin-only write policies. The Storage policy migration preserves public reads only for series covers and chapter pages referenced by published chapters.
@@ -75,8 +76,8 @@ Resolve any errors before deploying. Keep `.env.local` out of Git; `.gitignore` 
 1. Push the repository to GitHub and import it as a Vercel project.
 2. Set the Vercel project's **Root Directory** to the repository root (`.`). The public Next.js app is the root app; `admin-portal/` is excluded from the Vercel deployment by `.vercelignore` and is not deployed.
 3. Use the detected Next.js framework settings and root `package.json` scripts (`npm install` and `npm run build`).
-4. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in the Vercel project's Environment Variables for the environments you use. Use the Supabase project URL and its public anon/publishable key.
-5. Deploy and test the public catalogue, manga routes, and chapter reader. Add your public domain in Vercel when ready.
+4. Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL` in the Vercel project's Environment Variables. Set `NEXT_PUBLIC_SITE_URL` to the final HTTPS origin (for example, `https://yourdomain.com`) so canonical URLs and the sitemap point to the public site.
+5. Deploy and test the public catalogue, manga routes, chapter reader, `robots.txt`, and `sitemap.xml`. Add your public domain in Vercel when ready.
 
 Only public Supabase URL and anon/publishable key belong in frontend environment variables. Never add a Supabase service-role key to this app or expose it in client code.
 
@@ -104,6 +105,8 @@ Only public Supabase URL and anon/publishable key belong in frontend environment
 - Multi-series catalogue, dynamic manga details, title search, and genre filters
 - Eclipse Zero featured first, with clearly labeled local sample data when Supabase is not configured
 - Dynamic reader routes, published-chapter filtering, signed private page images, and previous/next navigation
+- Single-page, double-page, and vertical reader modes with RTL/LTR controls, saved guest preferences, and per-chapter local reading progress
+- Dynamic manga/chapter metadata, canonical URLs, robots.txt, and a Supabase-backed sitemap
 - Admin allowlist check, series/chapter CRUD, draft/publish/unpublish controls, ordered page uploads, private preview, and deletion confirmation
 - Separate SQL setup for table RLS and Storage policies
 

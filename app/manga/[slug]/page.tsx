@@ -1,7 +1,16 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ChapterRows, CoverArt, Footer, Header } from '@/components/platform';
 import { getMangaBySlug, getPublishedChapters } from '@/lib/catalog';
+import { createPageMetadata } from '@/lib/seo';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const manga = await getMangaBySlug(slug);
+  if (!manga) return createPageMetadata('Manga not found | Dr Content Creator Manga', 'Explore original manga series on Dr Content Creator Manga.', `/manga/${encodeURIComponent(slug)}`);
+  return createPageMetadata(`${manga.title} | Dr Content Creator Manga`, manga.synopsis || `Read ${manga.title} on Dr Content Creator Manga.`, `/manga/${encodeURIComponent(manga.slug)}`);
+}
 
 export default async function MangaDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
