@@ -40,6 +40,7 @@ Open http://localhost:3001. Configure that app's `.env.local` as described in [a
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 4. In Supabase SQL Editor, run `supabase/schema.sql`, then run `supabase/storage-policies.sql` to set up the private manga-pages bucket and admin-only write policies. The Storage policy migration preserves public reads only for series covers and chapter pages referenced by published chapters.
@@ -62,6 +63,44 @@ Never use a guessed UUID. Copy your real user ID from Supabase Authentication > 
 
 The dashboard uses unique object paths under `series-slug/chapter-slug/` and stores those paths in `chapter_pages.image_url`. Covers are also stored in the same private bucket, with their object path saved to `series.cover_url`. Existing absolute image URLs continue to render. The bucket must stay private; do not enable public bucket access or unrestricted uploads.
 
+## 4.1 Character profiles and world-building archives
+
+The public series pages support published character profiles and world-guide entries. To add the additive tables and their RLS policies, run `supabase/advanced-universe.sql` after `schema.sql` and `storage-policies.sql`. This migration does not alter existing manga, chapter, page, or administrator records. Character and world records are private drafts by default; only the existing global manga administrators can create, edit, publish, or delete them. No creator-specific accounts or per-series ownership are implemented in this public-only app.
+
+Use the Supabase SQL Editor or another trusted administrator-only tool to manage these records until a creator dashboard and its ownership model are available. For example, create a draft character with:
+
+```sql
+insert into public.characters (series_id, name, slug, description, age, abilities)
+select id, 'Character Name', 'character-name', 'Character description.', 'Unknown', array['Ability']
+from public.series
+where slug = 'eclipse-zero';
+```
+
+Set `published = true` only when the profile is ready for public display. Character portraits and world-entry artwork can use object paths in the private `manga-pages` bucket; the migration permits signed reads only for artwork referenced by published profiles/entries. Existing public URLs remain supported.
+
+Create a draft location entry in the same way:
+
+```sql
+insert into public.world_entries (series_id, entry_type, title, slug, summary, content)
+select id, 'location', 'The Shattered Capital', 'the-shattered-capital',
+       'A city divided by the first eclipse.',
+       'Add the full location history here.'
+from public.series
+where slug = 'eclipse-zero';
+```
+
+Connect a character and a world entry by their IDs and shared series ID:
+
+```sql
+insert into public.character_world_entries (series_id, character_id, world_entry_id)
+select c.series_id, c.id, w.id
+from public.characters c
+join public.world_entries w on w.series_id = c.series_id
+where c.slug = 'character-name'
+  and w.slug = 'the-shattered-capital'
+  and c.series_id = (select id from public.series where slug = 'eclipse-zero');
+```
+
 ## 5. Test the build
 
 ```bash
@@ -75,8 +114,8 @@ Resolve any errors before deploying. Keep `.env.local` out of Git; `.gitignore` 
 1. Push the repository to GitHub and import it as a Vercel project.
 2. Set the Vercel project's **Root Directory** to the repository root (`.`). The public Next.js app is the root app; `admin-portal/` is excluded from the Vercel deployment by `.vercelignore` and is not deployed.
 3. Use the detected Next.js framework settings and root `package.json` scripts (`npm install` and `npm run build`).
-4. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in the Vercel project's Environment Variables for the environments you use. Use the Supabase project URL and its public anon/publishable key.
-5. Deploy and test the public catalogue, manga routes, and chapter reader. Add your public domain in Vercel when ready.
+4. Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL` in the Vercel project's Environment Variables. Set `NEXT_PUBLIC_SITE_URL` to the final HTTPS origin (for example, `https://yourdomain.com`) so canonical URLs and the sitemap point to the public site.
+5. Deploy and test the public catalogue, manga routes, chapter reader, `robots.txt`, and `sitemap.xml`. Add your public domain in Vercel when ready.
 
 Only public Supabase URL and anon/publishable key belong in frontend environment variables. Never add a Supabase service-role key to this app or expose it in client code.
 
@@ -104,7 +143,11 @@ Only public Supabase URL and anon/publishable key belong in frontend environment
 - Multi-series catalogue, dynamic manga details, title search, and genre filters
 - Eclipse Zero featured first, with clearly labeled local sample data when Supabase is not configured
 - Dynamic reader routes, published-chapter filtering, signed private page images, and previous/next navigation
+- Single-page, double-page, and vertical reader modes with RTL/LTR controls, saved guest preferences, and per-chapter local reading progress
+- Dynamic manga/chapter metadata, canonical URLs, robots.txt, and a Supabase-backed sitemap
+- Published character profiles, character relationships, and series world guides for lore, locations, kingdoms, factions, timelines, and power systems
+- Additive `supabase/advanced-universe.sql` schema with private drafts and global-admin-only writes
 - Admin allowlist check, series/chapter CRUD, draft/publish/unpublish controls, ordered page uploads, private preview, and deletion confirmation
 - Separate SQL setup for table RLS and Storage policies
 
-The dashboard depends on the Supabase SQL policies. Apply both SQL files and test with an authorized account before using it for production publishing. Email/password reset, comments, analytics, and payments are not included.
+The existing publishing dashboard is not present in the public-only source branch. Apply the relevant Supabase SQL migrations before using the public archive pages. Creator-specific ownership/collaboration, reader accounts/community, analytics, and payments are not included; payments remain disabled.

@@ -1,0 +1,269 @@
+.universe-page {
+  min-height: 65vh;
+}
+
+.universe-section {
+  padding-block: 54px;
+  border-bottom: 1px solid var(--line);
+}
+
+.universe-section .section-heading {
+  margin-bottom: 20px;
+}
+
+.universe-section .section-heading h2 {
+  margin-top: 8px;
+}
+
+.universe-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.universe-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  transition: border-color .2s, transform .2s;
+}
+
+.universe-card:hover {
+  transform: translateY(-3px);
+  border-color: #7f1d1d;
+}
+
+.universe-card-image,
+.world-card-image {
+  position: relative;
+  display: grid;
+  min-height: 200px;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 35%, #3b2022, #161616 72%);
+  color: #dc2626;
+  font: 600 54px 'Space Grotesk', sans-serif;
+}
+
+.universe-card-image img,
+.world-card-image img,
+.universe-detail-portrait img,
+.world-entry-hero img {
+  object-fit: cover;
+}
+
+.world-card-image {
+  min-height: 150px;
+}
+
+.universe-card-copy {
+  padding: 17px;
+}
+
+.universe-kind {
+  color: #ef4444;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.universe-card h3 {
+  margin: 8px 0;
+  font: 600 19px 'Space Grotesk', sans-serif;
+}
+
+.universe-card h3 a:hover {
+  color: #ef4444;
+}
+
+.universe-card p {
+  min-height: 42px;
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.universe-empty,
+.archive-notice {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.archive-notice {
+  margin: 14px 0;
+  border-color: #7f1d1d;
+}
+
+.archive-notice code {
+  color: #fca5a5;
+}
+
+.universe-detail {
+  display: grid;
+  grid-template-columns: minmax(220px, .7fr) 1.3fr;
+  gap: clamp(24px, 5vw, 64px);
+  align-items: start;
+  padding-block: 38px 64px;
+}
+
+.universe-detail-portrait {
+  position: relative;
+  display: grid;
+  min-height: 400px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: radial-gradient(circle at 50% 35%, #3b2022, #141414 72%);
+  color: #dc2626;
+  font: 600 88px 'Space Grotesk', sans-serif;
+}
+
+.universe-detail-copy h1,
+.world-entry-details h1 {
+  margin: 12px 0;
+  font: 600 clamp(38px, 6vw, 64px)/1.05 'Space Grotesk', sans-serif;
+  letter-spacing: -.055em;
+}
+
+.universe-detail-meta,
+.world-entry-summary {
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.universe-detail-description,
+.world-entry-content {
+  color: #d4d4d8;
+  font-size: 14px;
+  line-height: 1.9;
+  white-space: pre-line;
+}
+
+.universe-detail-copy section {
+  margin-top: 34px;
+}
+
+.universe-detail-copy h2 {
+  font: 600 22px 'Space Grotesk', sans-serif;
+}
+
+.universe-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.universe-tags li {
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  font-size: 11px;
+}
+
+.relationship-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.relationship-list li {
+  display: grid;
+  grid-template-columns: minmax(90px, .4fr) 1fr;
+  gap: 8px 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  font-size: 12px;
+}
+
+.relationship-list li > span {
+  color: #ef4444;
+}
+
+.relationship-list li a {
+  font-weight: 600;
+}
+
+.relationship-list li p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.world-entry-details {
+  max-width: 900px;
+  margin: 22px auto 70px;
+}
+
+.world-entry-hero {
+  position: relative;
+  height: clamp(220px, 42vw, 480px);
+  margin-bottom: 34px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.world-entry-content {
+  margin-top: 26px;
+}
+
+.world-entry-content p {
+  margin-block: 0 18px;
+}
+
+@media (max-width: 900px) {
+  .universe-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .universe-grid {
+    gap: 10px;
+  }
+
+  .universe-card-image {
+    min-height: 150px;
+  }
+
+  .universe-card-copy {
+    padding: 12px;
+  }
+
+  .universe-card h3 {
+    font-size: 16px;
+  }
+
+  .universe-card p {
+    font-size: 11px;
+  }
+
+  .universe-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .universe-detail-portrait {
+    min-height: 300px;
+  }
+}

@@ -1,0 +1,68 @@
+:root {
+  --bg: #090909;
+  --panel: #141414;
+  --panel-2: #1b1b1b;
+  --line: #292929;
+  --text: #f5f5f5;
+  --muted: #a1a1aa;
+  --red: #dc2626;
+  --red-dark: #991b1b;
+  --gold: #dc2626;
+}
+
+body {
+  background: var(--bg);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline-color: var(--red);
+}
+
+.brand b,
+.brand-mark,
+.navlinks a:hover,
+.footer a:hover,
+.text-link b,
+.genre-row a:hover,
+.back-details:hover {
+  color: var(--red);
+}
+
+.brand-mark {
+  border-color: var(--red);
+}
+
+.button-red {
+  background: var(--red);
+}
+
+.button-red:hover {
+  background: #ef4444;
+}
+
+.button-outline:hover,
+.reader-tool-button:hover {
+  border-color: var(--red);
+}
+
+.filter-chip.active {
+  border-color: var(--red);
+  background: #dc26261a;
+  color: #f5f5f5;
+}
+
+.manga-card:hover {
+  border-color: #7f1d1d;
+}
+
+.manga-grid-single {
+  grid-template-columns: minmax(0, 330px);
+}
+
+::selection {
+  background: #dc2626;
+  color: #fff;
+}
